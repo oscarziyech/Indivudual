@@ -1,0 +1,253 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>After School Club</title>
+    <script src="lesson.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="bg-dark text-white">
+    <div class="container-fluid p-5" id="app">
+        
+        <div class="container">
+            <div class="row d-flex justify-content-between">
+                <div class="col">
+                    <h1>{{sitename}}</h1>
+                </div>
+                
+                <div class="col d-flex justify-content-end">
+                    <button class="btn btn-dark btn-outline-secondary" v-on:click="showCheckout" v-show="showButton1(visible1)" v-if="showCheckout">
+                        <span class="fas fa-cart-plus"></span> Cart <span class="badge bg-danger">{{ cartItemCount }}</span>
+                    </button>
+                    <button class="btn btn-success" v-on:click="showCheckout" v-show="showButton2(visible2)"> 
+                        Back
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+            
+        <main>
+            <div class="row" v-if="showLessons">
+               
+                <!-- Bar containing all sort inputs -->
+                <div class="row py-4 d-flex justify-content-between">
+                    <div class="row col">
+                        <div class="col-md-4">
+                            <select class="btn-secondary btn col-md-12 form-select" name="sortBy" id="select" v-model="sortBy"> Sort
+                                <option disabled value="sort">--Sort By--</option>
+                                <option value="subject">Subject</option>
+                                <option value="location">Location</option>
+                                <option value="price">Price</option>
+                                <option value="availability">Availability</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <button v-on:click="ascending = !ascending" class="sort-button btn-secondary btn">
+                                <i v-if="ascending" class="fa fa-sort-up">Ascending</i>
+                                <i v-else class="fa fa-sort-down">Descending</i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col row d-flex justify-content-end">
+                        <div class="col-4">
+                            <input class="form-control me-2" type="text" v-model="searchValue" placeholder="Search">
+                        </div>
+                        <div class="col-1">
+                            <button class="btn btn-secondary"><i class="fa fa-search"></i></button>
+                        </div> 
+                    </div>
+                    
+                    
+                </div>
+                        
+                <div class="col-md-3 py-2" v-for="(lesson, index) in sortedArray">
+                    <div class="card bg-secondary text-white rounded">
+                        <img v-bind:src="lesson.image" :alt="lesson.subject" class="card-img-top" width="200dp" height="250dp">
+                        <div class="card-body">
+                            <h1 class="card-title my-1">{{lesson.subject}}</h1>
+                            <h4 class="card-text">{{lesson.location}}</h4>
+                            <div class="card-text my-1">Price: ${{lesson.price}}</div>
+                            <div class="card-text my-1">Number of Spaces: {{lesson.Numberofspaces}}</div>
+                            <div class="my-2">
+                                <button class="btn btn-success" v-on:click="addToCart(lesson)" v-if="canAddToCart(lesson)">Add To Cart</button>
+                                <button class="btn btn-success" disabled v-else>Add To Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>     
+            </div>
+              
+            <div v-else class="row">
+                <div class="col-md-2 pt-5" v-for="(cart, index) in cart">
+                    <div class="card bg-secondary text-white rounded">
+                        <img v-bind:src="cart.image" class="card-img-top" width="100dp" height="150dp">
+                        <div class="card-body">
+                            <h1 class="card-title my-1">{{cart.subject}}</h1>
+                            <h4 class="card-text">{{cart.location}}</h4>
+                            <div class="card-text mt-3">Price: ${{cart.price}}</div>
+                            <div class="my-2">
+                                <button class="btn btn-danger" v-on:click="removefromCart(index)">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>   
+
+                <div class="container my-5 row d-flex justify-content-between">
+                    <div class="col"> <h2>Total:</h2></div>
+                    <div class="col d-flex justify-content-end"> <h2>Total:</h2></div>
+                </div>
+
+                <div class="container">
+                    <form class="container d-flex justify-content-end was-validated">
+                        <div class="row col-8 d-flex justify-content-end">
+                            <div class="col">
+                                <input type="text" class="form-control" placeholder="Enter Name" required>
+                            </div>
+                            <div class="col">
+                                <input type="number" class="form-control" placeholder="Enter Phone Number" required>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" v-on:click="submitForm"> 
+                                    Checkout
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        var store = new Vue({
+            el: '#app',
+            data: {
+                sitename: 'course work',
+                ascending: true,
+                visible1: false,
+                visible2: false,
+                sortBy: 'subject',
+                searchValue: '',
+                lesson: lessons,
+                cart: [],
+                showLessons: true,
+            },
+
+            methods: {
+                addToCart(lesson) {
+                    this.cart.push({'subject': lesson.subject, 'location': lesson.location, 'price': lesson.price, 'image': lesson.image});
+                    return lesson.Numberofspaces --;
+                },
+                
+                removefromCart(lesson) {
+                    this.cart.splice(this.cart.indexOf(lesson), 1);
+                    return lesson.Numberofspaces ++;
+                },
+
+                canAddToCart(lesson) {
+                    return lesson.Numberofspaces != 0;
+                },
+                
+                showCheckout() {
+                    this.showLessons = this.showLessons ? false: true                
+                },
+
+                showButton1 (visible1){
+                    if(this.cart.length > 0){
+                        if(this.showLessons){
+                            return this.visible1 = true;
+                        }
+                        else {
+                            return this.visible1 = false;
+                        }
+                    }
+                },
+
+                showButton2 (visible2){
+                    if(this.showLessons){
+                        return this.visible2 = false;
+                    }
+                    else {
+                        return this.visible2 = true;
+                    }
+                },
+                submitForm() {
+                    alert('Order Successful!');
+                }
+            },
+
+            computed: {
+                cartItemCount (){
+                    return this.cart.length;
+                },
+
+                sortedArray() {
+                    let sortedArray = this.lesson;
+                    
+                    // Process search input
+                    if (this.searchValue != '' && this.searchValue) {
+                        sortedArray = sortedArray.filter((item) => {
+                            return item.subject
+                            .toUpperCase()
+                            .includes(this.searchValue.toUpperCase())
+                        })
+                    }
+
+                    // Sort by alphabetical order
+                    sortedArray = sortedArray.sort((a, b) => {
+                        if (this.sortBy == 'subject') {
+                            let fa = a.subject.toLowerCase(), fb = b.subject.toLowerCase()
+                        
+                            if (fa < fb) {
+                            return -1
+                            }
+                            if (fa > fb) {
+                            return 1 
+                            }
+                            return 0
+                            
+                        // Sort by price
+                        } else if (this.sortBy == 'price') {
+                            return a.price - b.price
+
+                        // Sort by location
+                        } else if (this.sortBy == 'location') {
+                            let fa = a.location.toLowerCase(), fb = b.location.toLowerCase()
+                        
+                            if (fa < fb) {
+                            return -1
+                            }
+                            if (fa > fb) {
+                            return 1 
+                            }
+                            return 0
+                            
+                        } else if (this.sortBy == 'availability') {
+                            return a.Numberofspaces - b.Numberofspaces
+                        }
+                    })
+                    
+                    // Show sorted array in descending or ascending order
+                    if (!this.ascending) {
+                        sortedArray.reverse()
+                    }
+
+                    return sortedArray;
+                }
+                
+            }
+        
+        });
+    </script>
+    
+</body>
+</html>
